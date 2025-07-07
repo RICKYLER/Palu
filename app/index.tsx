@@ -17,6 +17,8 @@ import {
   Users,
   Calendar,
   Wallet,
+  Shield,
+  Lock,
 } from "lucide-react-native";
 import {
   differenceInDays,
@@ -29,7 +31,9 @@ import ActiveCycleCard from "../components/ActiveCycleCard";
 import NextEventCard from "../components/NextEventCard";
 import CycleDetailModal from "../components/CycleDetailModal";
 import SettingsModal from "../components/SettingsModal";
+import SecurityLockScreen from "../components/SecurityLockScreen";
 import { useMockWallet } from "../hooks/useMockWallet";
+import { useSecureAuth } from "../hooks/useSecureAuth";
 import { useTheme } from "../contexts/ThemeContext";
 import { CycleData, TimeRemaining } from "../types";
 
@@ -41,13 +45,26 @@ export default function HomeScreen(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { isDark } = useTheme();
 
-  // Use the custom wallet hook
+  // Use the custom wallet hook with enhanced security
   const {
     walletAddress,
     isConnecting,
     connect: connectWallet,
     disconnect: disconnectWallet,
+    isWalletSecure,
+    walletBalance,
+    lastSyncTime,
   } = useMockWallet();
+
+  // Use secure authentication hook
+  const {
+    isAuthenticated,
+    isBiometricSupported,
+    authenticate,
+    logout,
+    lockApp,
+    isLocked,
+  } = useSecureAuth();
 
   // Update time every minute for countdown timers
   useEffect(() => {
@@ -210,6 +227,16 @@ export default function HomeScreen(): JSX.Element {
     activeCycles.reduce((sum, cycle) => sum + cycle.progressPercentage, 0) /
     activeCycles.length;
 
+  // Show security lock screen if not authenticated
+  if (isLocked || !isAuthenticated) {
+    return (
+      <SecurityLockScreen
+        onAuthenticate={authenticate}
+        isBiometricSupported={isBiometricSupported}
+      />
+    );
+  }
+
   if (isLoading) {
     return (
       <SafeAreaView
@@ -271,6 +298,19 @@ export default function HomeScreen(): JSX.Element {
           PaluChain Go
         </Text>
         <View className="flex-row items-center">
+          {/* Security Status Indicator */}
+          <TouchableOpacity
+            className={`flex-row items-center px-2 py-1 rounded-lg mr-2 ${isDark ? "bg-green-800" : "bg-green-100"}`}
+            onPress={() => {}}
+          >
+            <Shield size={14} color="#059669" />
+            <Text
+              className={`ml-1 text-xs font-medium ${isDark ? "text-green-200" : "text-green-700"}`}
+            >
+              Secure
+            </Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={walletAddress ? disconnectWallet : connectWallet}
             disabled={isConnecting}
@@ -290,13 +330,22 @@ export default function HomeScreen(): JSX.Element {
                 className="ml-1"
               />
             ) : (
-              <Text
-                className={`ml-1 text-xs font-medium ${walletAddress ? (isDark ? "text-green-200" : "text-green-700") : isDark ? "text-indigo-200" : "text-indigo-700"}`}
-              >
-                {walletAddress
-                  ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
-                  : "Connect"}
-              </Text>
+              <View className="ml-1">
+                <Text
+                  className={`text-xs font-medium ${walletAddress ? (isDark ? "text-green-200" : "text-green-700") : isDark ? "text-indigo-200" : "text-indigo-700"}`}
+                >
+                  {walletAddress
+                    ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`
+                    : "Connect"}
+                </Text>
+                {walletAddress && (
+                  <Text
+                    className={`text-xs ${isDark ? "text-green-300" : "text-green-600"}`}
+                  >
+                    {walletBalance} ETH
+                  </Text>
+                )}
+              </View>
             )}
           </TouchableOpacity>
 
@@ -307,6 +356,14 @@ export default function HomeScreen(): JSX.Element {
           >
             <Bell size={24} color={isDark ? "#ffffff" : "#333"} />
             <View className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="p-2 mr-2"
+            onPress={lockApp}
+            accessibilityLabel="Lock app"
+            accessibilityRole="button"
+          >
+            <Lock size={20} color={isDark ? "#ffffff" : "#333"} />
           </TouchableOpacity>
           <TouchableOpacity
             className="p-2"
@@ -335,18 +392,29 @@ export default function HomeScreen(): JSX.Element {
                   <Text
                     className={`text-sm font-semibold ${isDark ? "text-green-200" : "text-green-800"}`}
                   >
-                    Wallet Connected
+                    Secure Wallet Connected
                   </Text>
                   <Text
                     className={`text-xs ${isDark ? "text-green-300" : "text-green-600"}`}
                   >
-                    {walletAddress.slice(0, 8)}...{walletAddress.slice(-8)}
+                    {walletAddress.slice(0, 8)}...{walletAddress.slice(-8)} •{" "}
+                    {walletBalance} ETH
                   </Text>
+                  {lastSyncTime && (
+                    <Text
+                      className={`text-xs ${isDark ? "text-green-400" : "text-green-500"}`}
+                    >
+                      Last sync: {lastSyncTime.toLocaleTimeString()}
+                    </Text>
+                  )}
                 </View>
               </View>
-              <View
-                className={`w-2 h-2 rounded-full ${isDark ? "bg-green-400" : "bg-green-500"}`}
-              />
+              <View className="items-center">
+                <View
+                  className={`w-2 h-2 rounded-full mb-1 ${isDark ? "bg-green-400" : "bg-green-500"}`}
+                />
+                {isWalletSecure && <Shield size={12} color="#059669" />}
+              </View>
             </View>
           </View>
         )}
