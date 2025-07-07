@@ -1,5 +1,12 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Switch } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Switch,
+  Alert,
+} from "react-native";
 import { BlurView } from "expo-blur";
 import {
   ArrowLeft,
@@ -9,6 +16,13 @@ import {
   Bell,
   Shield,
   HelpCircle,
+  Lock,
+  Key,
+  Eye,
+  EyeOff,
+  Smartphone,
+  Wifi,
+  Database,
 } from "lucide-react-native";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -22,6 +36,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose = () => {},
 }) => {
   const { theme, isDark, setTheme } = useTheme();
+  const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const [autoLockEnabled, setAutoLockEnabled] = useState(true);
+  const [encryptionEnabled, setEncryptionEnabled] = useState(true);
+  const [secureConnectionEnabled, setSecureConnectionEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(true);
 
   if (!isVisible) return null;
 
@@ -141,7 +161,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Text>
                 </View>
                 <Switch
-                  value={true}
+                  value={notificationsEnabled}
+                  onValueChange={setNotificationsEnabled}
                   trackColor={{
                     false: isDark ? "#374151" : "#f3f4f6",
                     true: "#3b82f6",
@@ -160,7 +181,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   </Text>
                 </View>
                 <Switch
-                  value={true}
+                  value={securityAlertsEnabled}
+                  onValueChange={setSecurityAlertsEnabled}
                   trackColor={{
                     false: isDark ? "#374151" : "#f3f4f6",
                     true: "#3b82f6",
@@ -168,6 +190,152 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                   thumbColor={isDark ? "#ffffff" : "#ffffff"}
                 />
               </View>
+            </View>
+
+            <Text
+              className={`text-lg font-semibold mb-4 ${isDark ? "text-white" : "text-gray-800"}`}
+            >
+              Security & Privacy
+            </Text>
+
+            <View
+              className={`rounded-xl p-4 mb-6 ${isDark ? "bg-gray-700" : "bg-gray-50"}`}
+            >
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <Key size={20} color={isDark ? "#ffffff" : "#000000"} />
+                  <Text
+                    className={`ml-3 font-medium ${isDark ? "text-white" : "text-gray-800"}`}
+                  >
+                    Biometric Authentication
+                  </Text>
+                </View>
+                <Switch
+                  value={biometricEnabled}
+                  onValueChange={setBiometricEnabled}
+                  trackColor={{
+                    false: isDark ? "#374151" : "#f3f4f6",
+                    true: "#3b82f6",
+                  }}
+                  thumbColor={isDark ? "#ffffff" : "#ffffff"}
+                />
+              </View>
+
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <Lock size={20} color={isDark ? "#ffffff" : "#000000"} />
+                  <Text
+                    className={`ml-3 font-medium ${isDark ? "text-white" : "text-gray-800"}`}
+                  >
+                    Auto-Lock (5 min)
+                  </Text>
+                </View>
+                <Switch
+                  value={autoLockEnabled}
+                  onValueChange={setAutoLockEnabled}
+                  trackColor={{
+                    false: isDark ? "#374151" : "#f3f4f6",
+                    true: "#3b82f6",
+                  }}
+                  thumbColor={isDark ? "#ffffff" : "#ffffff"}
+                />
+              </View>
+
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <Database size={20} color={isDark ? "#ffffff" : "#000000"} />
+                  <Text
+                    className={`ml-3 font-medium ${isDark ? "text-white" : "text-gray-800"}`}
+                  >
+                    Data Encryption
+                  </Text>
+                </View>
+                <Switch
+                  value={encryptionEnabled}
+                  onValueChange={setEncryptionEnabled}
+                  trackColor={{
+                    false: isDark ? "#374151" : "#f3f4f6",
+                    true: "#3b82f6",
+                  }}
+                  thumbColor={isDark ? "#ffffff" : "#ffffff"}
+                />
+              </View>
+
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                  <Wifi size={20} color={isDark ? "#ffffff" : "#000000"} />
+                  <Text
+                    className={`ml-3 font-medium ${isDark ? "text-white" : "text-gray-800"}`}
+                  >
+                    Secure Connection Only
+                  </Text>
+                </View>
+                <Switch
+                  value={secureConnectionEnabled}
+                  onValueChange={setSecureConnectionEnabled}
+                  trackColor={{
+                    false: isDark ? "#374151" : "#f3f4f6",
+                    true: "#3b82f6",
+                  }}
+                  thumbColor={isDark ? "#ffffff" : "#ffffff"}
+                />
+              </View>
+            </View>
+
+            <Text
+              className={`text-lg font-semibold mb-4 ${isDark ? "text-white" : "text-gray-800"}`}
+            >
+              Privacy Controls
+            </Text>
+
+            <View
+              className={`rounded-xl p-4 mb-6 ${isDark ? "bg-gray-700" : "bg-gray-50"}`}
+            >
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-3 rounded-lg mb-2"
+                onPress={() =>
+                  Alert.alert(
+                    "Clear Data",
+                    "This will remove all locally stored data. Continue?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Clear", style: "destructive" },
+                    ],
+                  )
+                }
+              >
+                <View className="flex-row items-center">
+                  <Database size={20} color={isDark ? "#ffffff" : "#000000"} />
+                  <Text
+                    className={`ml-3 font-medium ${isDark ? "text-white" : "text-gray-800"}`}
+                  >
+                    Clear Local Data
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-row items-center justify-between p-3 rounded-lg mb-2"
+                onPress={() =>
+                  Alert.alert(
+                    "Export Data",
+                    "Export your encrypted data for backup?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Export", style: "default" },
+                    ],
+                  )
+                }
+              >
+                <View className="flex-row items-center">
+                  <Shield size={20} color={isDark ? "#ffffff" : "#000000"} />
+                  <Text
+                    className={`ml-3 font-medium ${isDark ? "text-white" : "text-gray-800"}`}
+                  >
+                    Export Encrypted Backup
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
 
             <Text
